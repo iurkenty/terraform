@@ -51,7 +51,7 @@ variable "mytuple" {
   default = ["cat1", 1, "dog"]
 }
 
-variable "myobject" {
+variable "myobject"
   type = object({ name = string, port = list(number) })
   default = {
     name = "IV"
