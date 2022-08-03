@@ -57,7 +57,3 @@ variable "myobject"
     name = "IV"
     port = [sshport, 25, 80] 
 }
-
-resource "aws_ec2" "testec2" {
-
-}
