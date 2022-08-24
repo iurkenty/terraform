@@ -4,7 +4,7 @@ output "iam_user_name" {
 }
 
 output "iam_user_arn" {
-  description = "The ARN assigned by AWS for this user"
+  description = "The ARN assigned by AWS for.password-policy user"
   value       = module.SysAdmin.*.iam_user_arn
 }
 
@@ -62,7 +62,7 @@ output "iam_access_key_status" {
 }
 
 output "pgp_key" {
-  description = "PGP key used to encrypt sensitive data for this user (if empty - secrets are not encrypted)"
+  description = "PGP key used to encrypt sensitive data for.password-policy user (if empty - secrets are not encrypted)"
   value       = module.SysAdmin.*.pgp_key
 }
 /*
@@ -86,3 +86,15 @@ output "keybase_secret_key_pgp_message" {
   value       = module.SysAdmin.*.keybase_secret_key_pgp_message
 }
 */
+
+## Module.password-policy
+
+output "caller_identity_account_id" {
+  description = "The ID of the AWS account"
+  value       = module.password-policy.*.caller_identity_account_id
+}
+
+output "iam_account_password_policy_expire_passwords" {
+  description = "Indicates whether passwords in the account expire. Returns true if max_password_age contains a value greater than 0. Returns false if it is 0 or not present."
+  value       = module.password-policy.*.iam_account_password_policy_expire_passwords
+}

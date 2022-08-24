@@ -10,5 +10,10 @@ variable "dbadmin" {
 
 variable "monitoruser" {
   type = list
-  default = ["monitoruser1", "monitoruser2", "monitoruser3"]
+  default = ["monitoruser1", "monitoruser2", "monitoruser3", "monitoruser4"]
+}
+
+variable "account-alias" {
+  type = list
+  default = ["sysadmin1-gogreen", "sysadmin2-gogreen"]
 }
