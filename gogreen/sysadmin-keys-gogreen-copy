@@ -1,7 +1,0 @@
-Key-Type: RSA
-Subkey-Type: RSA
-Name-Real: SysAdmin 1
-Name-Comment: PGP key for sysadmin1 AWS IAM user
-Name-Email: vadaturschii.iurii@gmail.com 
-Expire-Date: 90
-# Passphrase: COMMENT_OUT_SO_IT_WILL_PROMPT_TO_INSERT_PASSWORD

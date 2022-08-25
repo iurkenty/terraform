@@ -98,3 +98,25 @@ output "iam_account_password_policy_expire_passwords" {
   description = "Indicates whether passwords in the account expire. Returns true if max_password_age contains a value greater than 0. Returns false if it is 0 or not present."
   value       = module.password-policy.*.iam_account_password_policy_expire_passwords
 }
+
+## Module iam-group-with-policies
+
+output "iam_account_id" {
+  description = "IAM AWS account id"
+  value       = module.SysAdminGroupPolicy.aws_account_id
+}
+
+output "group_arn" {
+  description = "IAM group arn"
+  value       = module.SysAdminGroupPolicy.group_arn
+}
+
+output "group_users" {
+  description = "List of IAM users in IAM group"
+  value       = module.SysAdminGroupPolicy.group_users
+}
+
+output "group_name" {
+  description = "IAM group name"
+  value       = module.SysAdminGroupPolicy.group_name
+}
