@@ -11,7 +11,7 @@ locals {
     Name        = "GoGreenVPC"
   }
 }
-//noinspection MissingModule
+## GoGreen main VPC with 4 subnets for Web, App, and DB tiers plus a spare subnet.
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "3.14.2"
@@ -66,6 +66,100 @@ module "vpc" {
 
 }
 
+/*
+data "aws_vpc" "default" {
+  default = true
+}
+*/
+## Web Tier ALB Security Group
+module "WebALBSecurityGroup" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name        = "ALB-SG-GoGreen"
+  description = "Application load balancer security group with all ports open within VPC"
+  vpc_id      = module.vpc.vpc_id ## data.aws_vpc.default.id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["http-80-tcp", "https-443-tcp"]
+
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
+
+}
+## Web Tier Security Group
 module "WebTierSecurityGroup" {
-  source = "terraform-aws-modules/security-group/aws//modules/http-80"
+  source = "terraform-aws-modules/security-group/aws"
+
+  name = "Web-SG-GoGreen"
+  description = "Web tier security group with ALB-SG as a source"
+  vpc_id = module.vpc.vpc_id ## data.aws_vpc.default.id
+
+  computed_ingress_with_source_security_group_id = [
+    {
+      rule = "http-80-tcp"
+      source_security_group_id = module.WebALBSecurityGroup.security_group_id
+    }
+  ]
+  number_of_computed_ingress_with_source_security_group_id = 1
+
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
+}
+
+## Application Tier Load Balancer Security Group
+module "AppALBSecurityGroup" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name = "App-ALB-SG-GoGreen"
+  description = "Application tier load balancer security group"
+  vpc_id =  module.vpc.vpc_id ## data.aws_vpc.default.id ##
+
+ computed_ingress_with_cidr_blocks = [
+    {
+      rule = "http-80-tcp"
+      cidr_blocks = module.vpc.vpc_cidr_block ## data.aws_vpc.default.id ##
+    }
+  ]
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
+}
+## Application Tier Security Group
+module "AppTierSecurityGroup" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name = "App-SG-GoGreen"
+  description = "Application tier security group with Web-SG as a source"
+  vpc_id = module.vpc.vpc_id ## data.aws_vpc.default.id ##
+
+  computed_ingress_with_source_security_group_id = [
+    {
+      rule = "http-80-tcp"
+      source_security_group_id = module.AppALBSecurityGroup.security_group_id
+    }
+  ]
+  number_of_computed_ingress_with_source_security_group_id = 1
+
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
+}
+
+## Data-base Tier Security Group
+module "DBSecurityGroup" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name = "DB-SG-GoGreen"
+  description = "Data-base Security Group with App-SG as a source"
+  vpc_id = module.vpc.vpc_id ## data.aws_vpc.default.id ##
+
+  computed_ingress_with_source_security_group_id = [
+    {
+      rule = "mysql-tcp"
+      source_security_group_id = module.AppTierSecurityGroup.security_group_id
+    }
+  ]
+
+  number_of_computed_ingress_with_source_security_group_id = 1
+
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_rules = ["all-all"]
 }
