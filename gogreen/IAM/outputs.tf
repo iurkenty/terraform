@@ -120,3 +120,16 @@ output "group_name" {
   description = "IAM group name"
   value       = module.SysAdminGroupPolicy.group_name
 }
+
+## EC2toS3IAMRole outputs
+output "s3-bucket-policy-arn" {
+  value = aws_iam_policy.EC2toS3Policy.arn
+}
+
+output "assume-role-arn" {
+  value = aws_iam_role.EC2toS3IAMRole.arn
+}
+
+output "iam_instance_profile" {
+  value = aws_iam_instance_profile.AppTierEC2Profile.arn
+}

@@ -1,5 +1,72 @@
 provider "aws" {
   region = "us-west-2"
+  alias = "primary-region"
+}
+provider "aws" {
+  region = "us-west-1"
+  alias = "bucket-region"
+}
+
+## Instance profile
+resource "aws_s3control_multi_region_access_point" "utility-bucket-control" {
+  details {
+    name = "utility-bucket"
+    region {
+      bucket = data.aws_s3_bucket.gogreen-utility-bucket-iurkenty-arn.id
+    }
+  }
+}
+
+data "aws_s3_bucket" "gogreen-utility-bucket-iurkenty-arn" {
+  provider = aws.bucket-region
+  bucket = "gogreen-utility-bucket-iurkenty"
+}
+resource "aws_iam_policy" "EC2toS3Policy" {
+  name        = "EC2toS3Policy"
+  description = "Read-Write policy for EC2"
+  policy      = data.aws_iam_policy_document.EC2toS3Policy.json
+}
+data "aws_iam_policy_document" "EC2toS3Policy" {
+    statement  {
+
+        actions = [
+        "s3:*",
+        "s3-object-lambda:*",
+        ]
+        resources = [
+          data.aws_s3_bucket.gogreen-utility-bucket-iurkenty-arn.arn,
+          "${data.aws_s3_bucket.gogreen-utility-bucket-iurkenty-arn.arn}/*"
+     ]
+    }
+  }
+
+
+resource "aws_iam_role" "EC2toS3IAMRole" {
+  name               = "EC2toS3IAMRole"
+  assume_role_policy = <<EOF
+{
+  "Version" : "2012-10-17",
+  "Statement" :
+  [
+    {
+      "Effect" : "Allow",
+      "Principal" : {
+        "Service" : ["ec2.amazonaws.com"]
+      },
+      "Action" : "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "EC2toS3FullAccess" {
+  policy_arn = aws_iam_policy.EC2toS3Policy.arn
+  role       = aws_iam_role.EC2toS3IAMRole.name
+}
+resource "aws_iam_instance_profile" "AppTierEC2Profile" {
+  name = "AppTierEC2Profile"
+  role = aws_iam_role.EC2toS3IAMRole.name
 }
 
 ## Public Keys for all users
@@ -27,11 +94,12 @@ module "SysAdmin" {
   create_iam_access_key         = true
   password_reset_required       = false
 }
-/* - Future Use
-lifecycle {
-    ignore_changes = [password_reset_required]
-  }
-*/
+#################################
+# - Future Use
+# lifecycle {
+#     ignore_changes = [password_reset_required]
+#   }
+#################################
 
 module "SysAdminGroupPolicy" {
   source = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
@@ -84,11 +152,12 @@ module "DBadmin" {
   create_iam_access_key         = true
   password_reset_required       = true
 }
-/* - Future Use
-lifecycle {
-    ignore_changes = [password_reset_required]
-  }
-*/
+############################
+#  - Future Use
+# lifecycle {
+#     ignore_changes = [password_reset_required]
+#   }
+##################################
 
 module "DBAdminGroupPolicy" {
   source = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
@@ -114,11 +183,12 @@ module "MonitorUser" {
   create_iam_access_key         = true
   password_reset_required       = true
 }
-/* - Future Use
-lifecycle {
-    ignore_changes = [password_reset_required]
-  }
-*/
+###########################
+# - Future Use
+#lifecycle {
+#    ignore_changes = [password_reset_required]
+#  }
+#########################
 
 module "MonitorUserGroupPolicy" {
   source = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
