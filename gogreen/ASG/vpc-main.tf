@@ -115,7 +115,7 @@ module "AppALBSecurityGroup" {
  computed_ingress_with_cidr_blocks = [
     {
       rule = "http-80-tcp"
-      cidr_blocks = module.vpc.vpc_cidr_block ## data.aws_vpc.default.id ##
+      cidr_blocks = module.vpc.vpc_cidr_block ## data.aws_vpc.default.id <for testing>##
     }
   ]
   egress_cidr_blocks = ["0.0.0.0/0"]

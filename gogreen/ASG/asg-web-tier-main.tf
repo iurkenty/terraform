@@ -50,16 +50,16 @@ module "WebTierAutoScaling" {
   vpc_zone_identifier = module.vpc.public_subnets
   service_linked_role_arn = aws_iam_service_linked_role.WebTierASGRole.arn
 
-  target_group_arns = [] ## ALB arn
+  target_group_arns = module.WebTierALB.target_group_arns ## ALB arn
 
   use_name_prefix = false
   instance_name = var.WebTierAutoscalingName
 
-  min_size         = 0
-  max_size         = 6
-  desired_capacity = 3
+  min_size                  = 0
+  max_size                  = 6
+  desired_capacity          = 3
   wait_for_capacity_timeout = 0
-  health_check_type = "ELB"
+  health_check_type         = "ELB"
   health_check_grace_period = 300
 
   create_iam_instance_profile = false
@@ -82,5 +82,74 @@ module "WebTierAutoScaling" {
 ## Web Tier Application Load Balancer
 
 module "WebTierALB" {
-  source = ""
+  source  = "terraform-aws-modules/alb/aws"
+
+  name = element(var.ALB-Names, 2) ## used element function here just for fun
+  load_balancer_type = "application"
+  internal = false
+
+  vpc_id          = module.vpc.vpc_id
+  security_groups = module.WebALBSecurityGroup.security_group_id
+  subnets         = module.vpc.public_subnets
+
+  http_tcp_listeners = [
+    {
+      port               = 80
+      protocol           = "HTTP"
+      target_group_index = 0
+      action_type        = "forward"
+    }]
+
+  http_tcp_listener_rules = [
+    {
+      http_tcp_listener_index = 0
+      priority                = 100
+      actions = [{
+        type        = "redirect"
+        status_code = "HTTP_302"
+        host        = "www.youtube.com"
+        path        = "/watch"
+        query       = "v=zpIbBOdQ0qw"
+        protocol    = "HTTPS"
+      }]
+      conditions = [{
+        query_strings = [{
+          key   = "video"
+          value = "trock"
+        }]
+      }]
+    }]
+  target_groups = [
+    {
+      name_prefix          = "Web"
+      backend_protocol     = "HTTP"
+      backend_port         = 80
+      target_type          = "instance"
+      deregistration_delay = 10
+      health_check = {
+        enabled             = true
+        interval            = 30
+        path                = "/"
+        port                = "traffic-port"
+        healthy_threshold   = 3
+        unhealthy_threshold = 2
+        timeout             = 5
+        protocol            = "HTTP"
+        matcher             = "200-399"
+      }
+      protocol_version = "HTTP1"
+
+    }]
+  tags = {
+    Project = "GoGreen"
+  }
+  lb_tags = {
+    WebTierALB = "GoGreen"
+  }
+  target_group_tags = {
+    WebTierTargetGroup = "GoGreen"
+  }
+  http_tcp_listeners_tags = {
+    WebTierHTTPListener = "GoGreen"
+  }
 }
