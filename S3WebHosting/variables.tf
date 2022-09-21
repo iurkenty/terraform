@@ -1,0 +1,1 @@
+variable "region" {} ## Desired region
