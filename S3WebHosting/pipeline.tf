@@ -50,3 +50,60 @@ resource "aws_codebuild_project" "tf-apply" {
 
   }
 }
+
+## Building a pipeline
+resource "aws_codepipeline" "tf-cicd-pipeline" {
+  name     = "tf-CICD-pipeline"
+  role_arn = aws_iam_role.PipelineRole.arn
+  artifact_store {
+    location = aws_s3_bucket.WebHostingArtifacts.id
+    type     = "S3"
+  }
+  stage {
+    name = "Source"
+    action {
+      category         = "Source"
+      name             = "Source"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
+      version          = "1"
+      output_artifacts = ["tf_code"]
+      configuration    = {
+        FullRepositoryId     = "iurkenty/terraform"
+        BranchName           = "master"
+        ConnectionArn        = var.CodePipelineConnector
+        OutputArtifactFormat = "CODE_ZIP"
+      }
+    }
+  }
+  stage {
+    name = "Plan"
+    action {
+      category         = "Build"
+      name             = "Build"
+      owner            = "AWS"
+      version          = "1"
+      provider         = "CodeBuild"
+      input_artifacts  = ["tf_code"]
+      output_artifacts = ["tf_plan"]
+      configuration    = {
+        ProjectName = "tf-cicd-plan"
+      }
+    }
+  }
+  stage {
+    name = "Deploy"
+    action {
+      category         = "Build"
+      name             = "Build"
+      owner            = "AWS"
+      version          = "1"
+      provider         = "CodeBuild"
+      input_artifacts  = ["tf_plan"]
+      output_artifacts = ["tf_deploy"]
+      configuration    = {
+        ProjectName = "tf-cicd-deploy"
+      }
+    }
+  }
+}

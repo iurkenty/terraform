@@ -38,7 +38,22 @@ resource "aws_iam_role" "PipelineRole" {
 }
 EOF
 }
-
+data "aws_iam_policy_document" "CodeStarConnection" {
+  statement {
+    sid = ""
+    actions = ["codestar-connections:UseConnection"]
+    resources = ["*"]
+    effect = "Allow"
+  }
+}
+resource "aws_iam_policy" "CodeStarConnectionPolicy" {
+  name = "tf-cicd-pipeline-policy"
+  policy = data.aws_iam_policy_document.CodeStarConnection.json
+}
+resource "aws_iam_role_policy_attachment" "CodeStarConnectionAttach" {
+  policy_arn = aws_iam_policy.CodeStarConnectionPolicy.arn
+  role       = aws_iam_role.PipelineRole.id
+}
 data "aws_iam_policy" "CodePipelineFullAccess" {
   arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
 }
