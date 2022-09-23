@@ -19,6 +19,7 @@ resource "aws_s3_bucket_acl" "bucket-acl" {
   acl    = "private"
 }
 
+
 ## IAM role for the CodePipeline
 resource "aws_iam_role" "PipelineRole" {
    name = "PipelineRole"
