@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "CodeStarConnection" {
   }
   statement {
     sid = ""
-    actions = ["codebuild:*"]
+    actions = ["codebuild:*", "s3:*"]
     resources = ["*"]
     effect = "Allow"
   }
