@@ -54,20 +54,30 @@ data "aws_iam_policy_document" "CICDPolicies" {
   }
 statement {
     sid = ""
-    actions = ["s3:PutObject"]
+    actions = ["s3:*"]
     resources = ["arn:aws:s3:::${aws_s3_bucket.WebHostingArtifacts.id}/*"]
     effect = "Allow"
   }
+statement {
+    sid = ""
+    actions = ["logs:*", "cloudwatch:*" ]
+    resources = ["*"]
+    effect = "Allow"
+  }
 }
-resource "aws_iam_policy" "CodeStarConnectionPolicy" {
+resource "aws_iam_policy" "CICDPolicy" {
   name = "tf-cicd-pipeline-policy"
   policy = data.aws_iam_policy_document.CICDPolicies.json
 }
 resource "aws_iam_role_policy_attachment" "CodeStarConnectionAttach" {
-  policy_arn = aws_iam_policy.CodeStarConnectionPolicy.arn
+  policy_arn = aws_iam_policy.CICDPolicy.arn
   role       = aws_iam_role.PipelineRole.id
 }
 
+resource "aws_iam_role_policy_attachment" "CodeBuildPolicyAttach" {
+  policy_arn = aws_iam_policy.CICDPolicy.arn
+  role       = aws_iam_role.CodeBuildRole.id
+}
 /*
 data "aws_iam_policy" "CodePipelineFullAccess" {
   arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
@@ -99,6 +109,8 @@ resource "aws_iam_role" "CodeBuildRole" {
 EOF
 }
 
+
+/* ## in case a developer mode is needed
 data "aws_iam_policy" "CodeBuildDevAccess" {
   arn = "arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess"
 }
@@ -107,4 +119,4 @@ resource "aws_iam_role_policy_attachment" "CodeBuildPolicyAttach" {
   policy_arn = data.aws_iam_policy.CodeBuildDevAccess.arn
   role       = aws_iam_role.CodeBuildRole.name
 }
-
+*/
