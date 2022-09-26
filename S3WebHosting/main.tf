@@ -48,8 +48,8 @@ data "aws_iam_policy_document" "CICDPolicies" {
   }
   statement {
     sid = ""
-    actions = ["codebuild:StartBuild"]
-    resources = ["${aws_codebuild_project.tf-plan.arn}, ${aws_codebuild_project.tf-apply.arn}"]
+    actions = ["codebuild:*"]
+    resources = ["*"]
     effect = "Allow"
   }
 statement {
@@ -67,6 +67,8 @@ resource "aws_iam_role_policy_attachment" "CodeStarConnectionAttach" {
   policy_arn = aws_iam_policy.CodeStarConnectionPolicy.arn
   role       = aws_iam_role.PipelineRole.id
 }
+
+/*
 data "aws_iam_policy" "CodePipelineFullAccess" {
   arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
 }
@@ -75,6 +77,7 @@ resource "aws_iam_role_policy_attachment" "PolicyAttach" {
   policy_arn = data.aws_iam_policy.CodePipelineFullAccess.arn
   role       = aws_iam_role.PipelineRole.name
 }
+*/
 
 ## IAM role for the CodeBuild
 resource "aws_iam_role" "CodeBuildRole" {
