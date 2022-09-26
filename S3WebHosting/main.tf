@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "CICDPolicies" {
   }
   statement {
     sid = ""
-    actions = ["codebuild:*"]
+    actions = ["codebuild:*", "secretsmanager:*"]
     resources = ["*"]
     effect = "Allow"
   }
@@ -72,11 +72,6 @@ resource "aws_iam_policy" "CICDPolicy" {
 resource "aws_iam_role_policy_attachment" "CodeStarConnectionAttach" {
   policy_arn = aws_iam_policy.CICDPolicy.arn
   role       = aws_iam_role.PipelineRole.id
-}
-
-resource "aws_iam_role_policy_attachment" "CodeBuildPolicyAttach" {
-  policy_arn = aws_iam_policy.CICDPolicy.arn
-  role       = aws_iam_role.CodeBuildRole.id
 }
 /*
 data "aws_iam_policy" "CodePipelineFullAccess" {
@@ -109,14 +104,15 @@ resource "aws_iam_role" "CodeBuildRole" {
 EOF
 }
 
-
-/* ## in case a developer mode is needed
 data "aws_iam_policy" "CodeBuildDevAccess" {
-  arn = "arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess"
+  arn = "arn:aws:iam::aws:policy/PowerUserAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "CodeBuildPolicyAttach" {
+resource "aws_iam_role_policy_attachment" "CodeBuildDevPolicyAttach" {
   policy_arn = data.aws_iam_policy.CodeBuildDevAccess.arn
   role       = aws_iam_role.CodeBuildRole.name
 }
-*/
+resource "aws_iam_role_policy_attachment" "CodeBuildCICDPolicyAttach" {
+  policy_arn = aws_iam_policy.CICDPolicy.arn
+  role       = aws_iam_role.CodeBuildRole.id
+}
