@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "CICDPolicies" {
   statement {
     sid = ""
     actions = ["codebuild:StartBuild"]
-    resources = ["${aws_codebuild_project.tf-plan.arn}, ${aws_codebuild_project.tf-apply.arn}"]
+    resources = ["*"]
     effect = "Allow"
   }
 statement {
