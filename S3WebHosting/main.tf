@@ -18,20 +18,6 @@ resource "aws_s3_bucket_acl" "bucket-acl" {
   bucket = aws_s3_bucket.WebHostingArtifacts.id
   acl    = "private"
 }
-/*
-resource "aws_s3_bucket_policy" "AllowArtifactFlow" {
-  bucket = aws_s3_bucket.WebHostingArtifacts.id
-  policy = ""
-}
-data "aws_iam_policy_document" "AllowPolicyArtifacts" {
-  statement {
-    principals {
-      identifiers = []
-      type        = "AWS"
-    }
-  }
-}
-*/
 
 ## IAM role for the CodePipeline
 resource "aws_iam_role" "PipelineRole" {
@@ -55,7 +41,7 @@ EOF
 data "aws_iam_policy_document" "CodeStarConnection" {
   statement {
     sid = ""
-    actions = ["codestar-connections:UseConnection"]
+    actions = ["codestar-connections:UseConnection", "codebuild:StartBuild"]
     resources = ["*"]
     effect = "Allow"
   }
