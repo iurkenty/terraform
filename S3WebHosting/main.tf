@@ -38,23 +38,30 @@ resource "aws_iam_role" "PipelineRole" {
 }
 EOF
 }
-data "aws_iam_policy_document" "CodeStarConnection" {
+## IAM policy takes 10-15 min to populate - must wait before trying to apply
+data "aws_iam_policy_document" "CICDPolicies" {
   statement {
     sid = ""
     actions = ["codestar-connections:UseConnection"]
-    resources = ["*"]
+    resources = [var.CodePipelineConnector]
     effect = "Allow"
   }
   statement {
     sid = ""
-    actions = ["codebuild:*", "s3:*"]
-    resources = ["*"]
+    actions = ["codebuild:StartBuild"]
+    resources = ["${aws_codebuild_project.tf-plan.arn}, ${aws_codebuild_project.tf-apply.arn}"]
+    effect = "Allow"
+  }
+statement {
+    sid = ""
+    actions = ["s3:PutObject"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.WebHostingArtifacts.id}/*"]
     effect = "Allow"
   }
 }
 resource "aws_iam_policy" "CodeStarConnectionPolicy" {
   name = "tf-cicd-pipeline-policy"
-  policy = data.aws_iam_policy_document.CodeStarConnection.json
+  policy = data.aws_iam_policy_document.CICDPolicies.json
 }
 resource "aws_iam_role_policy_attachment" "CodeStarConnectionAttach" {
   policy_arn = aws_iam_policy.CodeStarConnectionPolicy.arn
