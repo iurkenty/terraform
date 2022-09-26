@@ -87,7 +87,7 @@ resource "aws_codepipeline" "tf-cicd-pipeline" {
       input_artifacts  = ["tf_code"]
       output_artifacts = ["tf_plan"]
       configuration    = {
-        ProjectName = "tf-cicd-plan"
+        ProjectName = aws_codebuild_project.tf-plan.name
       }
     }
   }
@@ -102,7 +102,7 @@ resource "aws_codepipeline" "tf-cicd-pipeline" {
       input_artifacts  = ["tf_plan"]
       output_artifacts = ["tf_deploy"]
       configuration    = {
-        ProjectName = "tf-cicd-deploy"
+        ProjectName = aws_codebuild_project.tf-apply.name
       }
     }
   }
