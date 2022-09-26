@@ -41,7 +41,13 @@ EOF
 data "aws_iam_policy_document" "CodeStarConnection" {
   statement {
     sid = ""
-    actions = ["codestar-connections:UseConnection", "codebuild:StartBuild"]
+    actions = ["codestar-connections:UseConnection"]
+    resources = ["*"]
+    effect = "Allow"
+  }
+  statement {
+    sid = ""
+    actions = ["codebuild:*"]
     resources = ["*"]
     effect = "Allow"
   }
