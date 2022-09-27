@@ -1,6 +1,11 @@
 provider "aws" {
   region = var.region
 }
+## CodeStarConnection
+resource "aws_codestarconnections_connection" "GitHub" {
+  name = "WebHostingProject"
+  provider_type = "GitHub"
+}
 
 ## Bucket for the pipeline artifacts
 resource "aws_s3_bucket" "WebHostingArtifacts" {
@@ -43,7 +48,7 @@ data "aws_iam_policy_document" "CICDPolicies" {
   statement {
     sid = ""
     actions = ["codestar-connections:UseConnection"]
-    resources = [var.CodePipelineConnector]
+    resources = [aws_codestarconnections_connection.GitHub.arn]
     effect = "Allow"
   }
   statement {

@@ -1,111 +1,113 @@
-/* ## terraform-plan stage
+/* ## terraform plan stage
 resource "aws_codebuild_project" "tf-plan" {
-  name          = "tf-plan"
+  name          = var.build_name-tf-plan
   description   = "building terraform plan"
   service_role  = aws_iam_role.CodeBuildRole.arn
 
   artifacts {
-    type = "CODEPIPELINE"
+    type = var.artifacts_type-tf-plan
   }
 
+
   environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "hashicorp/terraform:latest"
-    type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "SERVICE_ROLE"
+    compute_type                = var.compute_type-tf-plan
+    image                       = var.image-tf-plan
+    type                        = var.image_type-tf-plan
+    image_pull_credentials_type = var.image_pull_credentials_type-tf-plan
     registry_credential {
-      credential          = var.SecretsManagerDocker
-      credential_provider = "SECRETS_MANAGER"
+      credential          = aws_secretsmanager_secret.DockerHub.arn
+      credential_provider = var.credential_provider-tf-plan
     }
   }
   source {
-     type = "CODEPIPELINE"
-     buildspec = file("codebuild/plan-buildspec.yml")
+    type      = var.source_type-tf-plan
+    buildspec = file(var.buildspec_path-tf-plan)
 
   }
 }
 */
 
+## terraform apply stage
 resource "aws_codebuild_project" "tf-apply" {
-  name          = "tf-apply"
+  name          = var.build_name-tf-apply
   description   = "building terraform apply"
   service_role  = aws_iam_role.CodeBuildRole.arn
 
   artifacts {
-    type = "CODEPIPELINE"
+    type = var.artifacts_type-tf-apply
   }
 
 
   environment {
-    compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "hashicorp/terraform:latest"
-    type                        = "LINUX_CONTAINER"
-    image_pull_credentials_type = "SERVICE_ROLE"
+    compute_type                = var.compute_type-tf-apply
+    image                       = var.image-tf-apply
+    type                        = var.image_type-tf-apply
+    image_pull_credentials_type = var.image_pull_credentials_type-tf-apply
     registry_credential {
-      credential          = var.SecretsManagerDocker
-      credential_provider = "SECRETS_MANAGER"
+      credential          = aws_secretsmanager_secret.DockerHub.arn
+      credential_provider = var.credential_provider-tf-apply
     }
   }
   source {
-    type = "CODEPIPELINE"
-    buildspec = file("codebuild/apply-buildspec.yml")
+    type      = var.source_type-tf-plan
+    buildspec = file(var.buildspec_path-tf-apply)
 
   }
 }
 
 ## Building a pipeline
 resource "aws_codepipeline" "tf-cicd-pipeline" {
-  name     = "tf-CICD-pipeline"
+  name     = var.pipeline_name
   role_arn = aws_iam_role.PipelineRole.arn
   artifact_store {
     location = aws_s3_bucket.WebHostingArtifacts.id
     type     = "S3"
   }
   stage {
-    name = "Source"
+    name = var.source_stage_name
     action {
-      category         = "Source"
-      name             = "Source"
-      owner            = "AWS"
-      provider         = "CodeStarSourceConnection"
-      version          = "1"
-      output_artifacts = ["tf_code"]
+      category         = var.source_category
+      name             = var.source_name
+      owner            = var.source_owner
+      provider         = var.source_provider
+      version          = var.source_version
+      output_artifacts = [var.source_output_artifacts]
       configuration    = {
-        FullRepositoryId     = "iurkenty/terraform"
-        BranchName           = "master"
-        ConnectionArn        = var.CodePipelineConnector
-        OutputArtifactFormat = "CODE_ZIP"
+        FullRepositoryId     = var.source_repository
+        BranchName           = var.source_branch
+        ConnectionArn        = aws_codestarconnections_connection.GitHub.arn
+        OutputArtifactFormat = var.source_output_artifact_format
       }
     }
   }
 /* ## terraform plan stage
   stage {
-    name = "Plan"
+    name = var.plan_stage_name
     action {
-      category         = "Build"
-      name             = "Build"
-      owner            = "AWS"
-      version          = "1"
-      provider         = "CodeBuild"
-      input_artifacts  = ["tf_code"]
-      output_artifacts = ["tf_plan"]
+      category         = var.plan_category
+      name             = var.plan_name
+      owner            = var.plan_owner
+      version          = var.plan_version
+      provider         = var.plan_provider
+      input_artifacts  = [var.plan_input_artifacts]
+      output_artifacts = [var.plan_output_artifacts]
       configuration    = {
         ProjectName = aws_codebuild_project.tf-plan.name
       }
     }
   }
 */
-
+## terraform apply stage
   stage {
-    name = "Deploy"
+    name = var.deploy_stage_name
     action {
-      category         = "Build"
-      name             = "Build"
-      owner            = "AWS"
-      version          = "1"
-      provider         = "CodeBuild"
-      input_artifacts  = ["tf_code"]
-      output_artifacts = ["tf_deploy"]
+      category         = var.deploy_category
+      name             = var.deploy_name
+      owner            = var.deploy_owner
+      version          = var.deploy_version
+      provider         = var.deploy_provider
+      input_artifacts  = [var.deploy_input_artifacts]
+      output_artifacts = [var.deploy_output_artifacts]
       configuration    = {
         ProjectName = aws_codebuild_project.tf-apply.name
       }
